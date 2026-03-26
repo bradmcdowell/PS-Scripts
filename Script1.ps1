@@ -1,5 +1,7 @@
 $currentdate = Get-Date
+$tz = Get-TimeZone
 Write-Host $currentdate
+Write-Host $tz.DisplayName
 # SIG # Begin signature block
 # MIIesgYJKoZIhvcNAQcCoIIeozCCHp8CAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
