@@ -1,0 +1,42 @@
+name: Sign PowerShell Scripts
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  sign:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Decode Certificate
+        shell: pwsh
+        run: |
+          $pfx_cert_byte = [System.Convert]::FromBase64String("${{ secrets.PFX_BASE64 }}")
+          [IO.File]::WriteAllBytes("${{ github.workspace }}\cert.pfx", $pfx_cert_byte)
+
+      - name: Sign Scripts
+        shell: pwsh
+        run: |
+          # Load the certificate into memory
+          $cert = Get-PfxCertificate -FilePath "${{ github.workspace }}\cert.pfx" -Password (ConvertTo-SecureString "${{ secrets.PFX_PASSWORD }}" -AsPlainText -Force)
+          
+          # Find and sign all .ps1 files
+          Get-ChildItem -Path ./ -Filter *.ps1 -Recurse | ForEach-Object {
+            Write-Host "Signing $($_.FullName)"
+            Set-AuthenticodeSignature -FilePath $_.FullName -Certificate $cert -TimestampServer "http://timestamp.digicert.com"
+          }
+
+      - name: Cleanup
+        if: always()
+        run: Remove-Item "${{ github.workspace }}\cert.pfx"
+
+      - name: Commit Signed Scripts
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add .
+          git commit -m "chore: auto-sign powershell scripts"
+          git push
