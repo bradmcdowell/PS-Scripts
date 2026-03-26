@@ -7,9 +7,15 @@ on:
 jobs:
   sign:
     runs-on: windows-latest
+    # steps:
+    #   - name: Checkout code
+    #     uses: actions/checkout@v4
+
+
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        # Change v4 to v6
+        uses: actions/checkout@v6
 
       - name: Decode Certificate
         shell: pwsh
